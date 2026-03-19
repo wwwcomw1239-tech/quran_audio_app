@@ -11,6 +11,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: quran_audio_app
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -50,7 +54,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: quran-audio-app-apk
-          path: quran_audio_app.apk
+          path: quran_audio_app/quran_audio_app.apk
           retention-days: 30
 
       - name: Create Release
@@ -59,7 +63,7 @@ jobs:
         with:
           tag_name: v1.0.0-${{ github.run_number }}
           name: Release ${{ github.run_number }}
-          files: quran_audio_app.apk
+          files: quran_audio_app/quran_audio_app.apk
           body: |
             ## Quran Audio App
             تطبيق القرآن الكريم بصوت الشيخ محمد صديق المنشاوي
