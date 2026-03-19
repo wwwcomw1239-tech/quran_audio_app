@@ -1,0 +1,75 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: 'stable'
+          cache: true
+
+      - name: Verify Flutter Installation
+        run: |
+          flutter --version
+          flutter doctor -v
+
+      - name: Get Dependencies
+        run: flutter pub get
+
+      - name: Analyze Code
+        run: flutter analyze
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Rename APK
+        run: |
+          mv build/app/outputs/flutter-apk/app-release.apk quran_audio_app.apk
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: quran-audio-app-apk
+          path: quran_audio_app.apk
+          retention-days: 30
+
+      - name: Create Release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v1.0.0-${{ github.run_number }}
+          name: Release ${{ github.run_number }}
+          files: quran_audio_app.apk
+          body: |
+            ## Quran Audio App
+            تطبيق القرآن الكريم بصوت الشيخ محمد صديق المنشاوي
+            
+            ### Features:
+            - 114 Surahs with complete data
+            - Audio playback with background support
+            - Download surahs for offline listening
+            - Favorites system
+            - Search and filter (Meccan/Medinan)
+            - Material Design 3 with Dark Mode
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
